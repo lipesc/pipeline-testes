@@ -12,6 +12,9 @@ build-job:
   artifacts:
     paths:
     - "build/"
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
 
 lint-markdown:
   stage: test
@@ -22,7 +25,10 @@ lint-markdown:
     - markdownlint-cli2 -v
     - markdownlint-cli2 "blog/**/*.md" "docs/**/*.md"
   allow_failure: true
-
+  rule:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event' 
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH      
+  
 test-html:
   stage: test
   image: node
@@ -32,6 +38,9 @@ test-html:
     - npm install --save-dev htmlhint
     - npx htmlhint --version
     - npx htmlhint build/
+  rule:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event' 
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH      
 
 pages:
   stage: deploy
@@ -42,3 +51,5 @@ pages:
   artifacts:
     paths:
       - "public/"
+    rule:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH      
