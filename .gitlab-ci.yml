@@ -57,5 +57,5 @@ pages:
   artifacts:
     paths:
       - "public/"
-    rule:
+  rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH      
