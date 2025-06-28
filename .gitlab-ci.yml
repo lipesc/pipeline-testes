@@ -3,47 +3,53 @@ stages:
   - test
   - deploy
 
-build-job:
-  stage: build
+default:
   image: node
+
+.standard-rules:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+build-job:
+  extends:
+    - .standard-rules
+  stage: build
   script: 
     - npm install
     - npm run build
   artifacts:
     paths:
-    - "build/"
-  rules:
-    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      - "build/"
+
 
 lint-markdown:
   stage: test
-  image: node
+  extends:
+    - .standard-rules
   dependencies: []
   script:
     - npm install markdownlint-cli2 --global
     - markdownlint-cli2 -v
     - markdownlint-cli2 "blog/**/*.md" "docs/**/*.md"
   allow_failure: true
-  rule:
-    - if: $CI_PIPELINE_SOURCE == 'merge_request_event' 
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH      
-  
+ 
+
 test-html:
   stage: test
-  image: node
+  extends:
+    - .standard-rules
   dependencies:
     - build-job
   script:
     - npm install --save-dev htmlhint
     - npx htmlhint --version
     - npx htmlhint build/
-  rule:
-    - if: $CI_PIPELINE_SOURCE == 'merge_request_event' 
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH      
+
 
 pages:
   stage: deploy
+  image: busybox
   dependencies:
     - build-job
   script:
