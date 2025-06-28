@@ -1,0 +1,62 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm install
+      - run: npm run build
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: build
+          path: build/
+
+  lint-markdown:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm install -g markdownlint-cli2
+      - run: markdownlint-cli2 -v
+      - run: markdownlint-cli2 "blog/**/*.md" "docs/**/*.md"
+    continue-on-error: true
+
+  test-html:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: build
+          path: build/
+      - run: npm install --save-dev htmlhint
+      - run: npx htmlhint --version
+      - run: npx htmlhint build/
+
+  deploy-pages:
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: build
+          path: build/
+      - run: mv build/ public/
+      - name: Upload pages artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: public
+          path: public/
