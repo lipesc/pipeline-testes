@@ -54,9 +54,8 @@ jobs:
         with:
           name: build
           path: build/
-      - run: mv build/ public/
-      - name: Upload pages artifact
-        uses: actions/upload-artifact@v4
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
         with:
-          name: public
-          path: public/
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./build
